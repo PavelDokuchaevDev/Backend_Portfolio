@@ -27,13 +27,6 @@ Swagger: [localhost:5103/swagger](http://localhost:5103/swagger).
 
 Разрешённая последовательность: `Open → InProgress → Resolved`. Пропуск шага или устаревшая Version возвращают 409. После успешного обновления используйте новую Version из ответа. Названия приоритетов нормализуются к нижнему регистру. Все временные отметки — UTC.
 
-## Что смотреть в коде
-
-- `Domain/Entities.cs`: вычисление DueAt и переходы состояний.
-- `Application/AppService.cs`: поиск правила и TimeProvider через DI.
-- `Infrastructure/AppDbContext.cs`: concurrency token и запрос просроченных обращений.
-- `tests/SupportDesk.Tests/Scenarios.cs`: SLA, устаревшие версии, два DbContext и overdue-фильтр.
-
 ```powershell
 dotnet test projects/SupportDesk/tests/SupportDesk.Tests -c Release
 ```
