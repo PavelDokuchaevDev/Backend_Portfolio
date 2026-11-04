@@ -27,12 +27,6 @@ Swagger: [localhost:5102/swagger](http://localhost:5102/swagger).
 
 Демо: бюджет 100, расходы 60 и 55 → Spent = 115, Remaining = -15, OverBudget = true. Расходы за соседний месяц не попадут в отчёт. Категория без расходов вернёт Spent = 0.
 
-## Что смотреть в коде
-
-- `Domain/Entities.cs`: положительные суммы, точность до двух знаков, обязательные поля.
-- `Infrastructure/AppDbContext.cs`: SQL-агрегация Report и индекс `(CategoryId, Date)`.
-- `tests/ExpenseLens.Tests/Scenarios.cs`: границы периода, пустые категории и превышение бюджета.
-
 ```powershell
 dotnet test projects/ExpenseLens/tests/ExpenseLens.Tests -c Release
 ```
