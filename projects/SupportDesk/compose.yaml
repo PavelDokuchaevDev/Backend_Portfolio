@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: SupportDesk
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio_dev}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d SupportDesk"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  migrate:
+    build:
+      context: ../..
+      dockerfile: projects/SupportDesk/Dockerfile.migrate
+    environment:
+      ConnectionStrings__Database: Host=db;Database=SupportDesk;Username=portfolio;Password=${POSTGRES_PASSWORD:-portfolio_dev}
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    build:
+      context: ../..
+      dockerfile: projects/SupportDesk/Dockerfile
+    ports:
+      - "5103:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Database: Host=db;Database=SupportDesk;Username=portfolio;Password=${POSTGRES_PASSWORD:-portfolio_dev}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+volumes:
+  pgdata:

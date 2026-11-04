@@ -1,0 +1,30 @@
+@baseUrl = http://localhost:5101
+
+### Создать товар
+# @name product
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{"name":"Mechanical keyboard","price":125.50,"stock":5}
+
+### Оформить заказ
+# @name order
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{"productId":"{{product.response.body.$.id}}","quantity":3}
+
+### Проверить остаток: 2
+GET {{baseUrl}}/api/products/{{product.response.body.$.id}}
+
+### Недостаточный остаток: 409
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{"productId":"{{product.response.body.$.id}}","quantity":3}
+
+### Отменить заказ: 204; повторная отмена: 409
+POST {{baseUrl}}/api/orders/{{order.response.body.$.id}}/cancel
+
+### Проверить заказ: Cancelled
+GET {{baseUrl}}/api/orders/{{order.response.body.$.id}}

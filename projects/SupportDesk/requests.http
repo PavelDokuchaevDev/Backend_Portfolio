@@ -1,0 +1,36 @@
+@baseUrl = http://localhost:5103
+
+### Создать правило SLA
+POST {{baseUrl}}/api/policies
+Content-Type: application/json
+
+{"priority":"high","resolutionMinutes":90}
+
+### Создать обращение
+# @name ticket
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
+
+{"title":"Cannot sign in","priority":"high"}
+
+### Перевести в работу
+# @name inProgress
+PATCH {{baseUrl}}/api/tickets/{{ticket.response.body.$.id}}/status
+Content-Type: application/json
+
+{"status":"InProgress","version":"{{ticket.response.body.$.version}}"}
+
+### Устаревшая версия: 409
+PATCH {{baseUrl}}/api/tickets/{{ticket.response.body.$.id}}/status
+Content-Type: application/json
+
+{"status":"Resolved","version":"{{ticket.response.body.$.version}}"}
+
+### Завершить с актуальной версией
+PATCH {{baseUrl}}/api/tickets/{{ticket.response.body.$.id}}/status
+Content-Type: application/json
+
+{"status":"Resolved","version":"{{inProgress.response.body.$.version}}"}
+
+### Просроченные обращения
+GET {{baseUrl}}/api/tickets/overdue

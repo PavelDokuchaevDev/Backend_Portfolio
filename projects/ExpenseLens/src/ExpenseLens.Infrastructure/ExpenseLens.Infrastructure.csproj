@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../ExpenseLens.Application/ExpenseLens.Application.csproj" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" /></ItemGroup></Project>

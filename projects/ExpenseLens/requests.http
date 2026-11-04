@@ -1,0 +1,32 @@
+@baseUrl = http://localhost:5102
+
+### Создать категорию
+# @name category
+POST {{baseUrl}}/api/categories
+Content-Type: application/json
+
+{"name":"Food","monthlyBudget":100}
+
+### Расход в начале месяца
+POST {{baseUrl}}/api/expenses
+Content-Type: application/json
+
+{"categoryId":"{{category.response.body.$.id}}","amount":60,"date":"2026-11-01","description":"Groceries"}
+
+### Расход в конце месяца
+POST {{baseUrl}}/api/expenses
+Content-Type: application/json
+
+{"categoryId":"{{category.response.body.$.id}}","amount":55,"date":"2026-11-30","description":"Dinner"}
+
+### Соседний месяц: не попадёт в ноябрьский отчёт
+POST {{baseUrl}}/api/expenses
+Content-Type: application/json
+
+{"categoryId":"{{category.response.body.$.id}}","amount":20,"date":"2026-12-01","description":"Lunch"}
+
+### Отчёт: Spent=115, Remaining=-15, OverBudget=true
+GET {{baseUrl}}/api/reports/monthly?year=2026&month=11
+
+### Проверка валидации: 400
+GET {{baseUrl}}/api/reports/monthly?year=2026&month=13

@@ -1,0 +1,66 @@
+name: Portfolio CI
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore Portfolio.sln
+      - run: dotnet build Portfolio.sln -c Release --no-restore
+      - run: dotnet test Portfolio.sln -c Release --no-build --logger trx --results-directory TestResults
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fast-test-results
+          path: TestResults
+  postgres-and-docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [StockFlow, ExpenseLens, SupportDesk]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: portfolio
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: portfolio_test
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U portfolio -d portfolio_test"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Integration tests against migrated PostgreSQL
+        env:
+          PORTFOLIO_TEST_DATABASE: Host=localhost;Database=portfolio_test;Username=portfolio;Password=test_password
+        run: dotnet test projects/${{ matrix.project }}/tests/${{ matrix.project }}.Tests -c Release --logger trx --results-directory TestResults
+      - name: Build and start Docker stack
+        run: docker compose -f projects/${{ matrix.project }}/compose.yaml up -d --build
+      - name: Check readiness and Swagger
+        shell: bash
+        run: |
+          case '${{ matrix.project }}' in
+            StockFlow) port=5101 ;;
+            ExpenseLens) port=5102 ;;
+            SupportDesk) port=5103 ;;
+          esac
+          curl --fail --retry 20 --retry-all-errors --retry-delay 3 "http://localhost:$port/health/ready"
+          curl --fail "http://localhost:$port/swagger/v1/swagger.json" > /dev/null
+      - name: Container logs
+        if: failure()
+        run: docker compose -f projects/${{ matrix.project }}/compose.yaml logs
+      - name: Stop containers
+        if: always()
+        run: docker compose -f projects/${{ matrix.project }}/compose.yaml down -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postgres-results-${{ matrix.project }}
+          path: TestResults

@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+WORKDIR /source
+COPY Directory.Build.props global.json ./
+COPY .config/ .config/
+COPY projects/SupportDesk/ projects/SupportDesk/
+RUN dotnet tool restore && dotnet build projects/SupportDesk/src/SupportDesk.Api -c Release
+ENTRYPOINT ["dotnet", "ef", "database", "update", "--no-build", "--configuration", "Release", "--project", "projects/SupportDesk/src/SupportDesk.Infrastructure", "--startup-project", "projects/SupportDesk/src/SupportDesk.Api"]

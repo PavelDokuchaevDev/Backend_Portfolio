@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+WORKDIR /source
+COPY Directory.Build.props global.json ./
+COPY .config/ .config/
+COPY projects/ExpenseLens/ projects/ExpenseLens/
+RUN dotnet tool restore && dotnet build projects/ExpenseLens/src/ExpenseLens.Api -c Release
+ENTRYPOINT ["dotnet", "ef", "database", "update", "--no-build", "--configuration", "Release", "--project", "projects/ExpenseLens/src/ExpenseLens.Infrastructure", "--startup-project", "projects/ExpenseLens/src/ExpenseLens.Api"]
