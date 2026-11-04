@@ -27,13 +27,6 @@ Swagger: [localhost:5101/swagger](http://localhost:5101/swagger). Готовно
 
 Проверка: создайте товар с остатком 5, закажите 3 единицы, повторите заказ на 3 — получите 409. Отмените успешный заказ — остаток станет 5. Повторная отмена вернёт 409.
 
-## Что смотреть в коде
-
-- `Domain/Entities.cs`: валидация товара и количества, снимок суммы заказа.
-- `Application/AppService.cs`: сценарии и порт `IStore`.
-- `Infrastructure/AppDbContext.cs`: ограничения БД, атомарные операции Reserve/Cancel.
-- `tests/StockFlow.Tests/Scenarios.cs`: HTTP-сценарии и конкурентный тест PostgreSQL.
-
 ```powershell
 dotnet test projects/StockFlow/tests/StockFlow.Tests -c Release
 ```
